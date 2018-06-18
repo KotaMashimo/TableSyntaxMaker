@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -32,35 +33,15 @@ public class MainApp extends JFrame {
 	int tbl_height 	= cell_height * n_row; 
 	
 	// ref: http://www.tohoho-web.com/java/layout.htm
-	private void addButton(JButton btn, int x, int y, int w, int h) {
+	private void addComponent(Component comp, int x, int y, int w, int h) {
 		GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridx = x;
         gbc.gridy = y;
         gbc.gridwidth = w;
         gbc.gridheight = h;
-        gbl.setConstraints(btn, gbc);
-        this.add(btn);
-	}
-	private void addScroll(JScrollPane scroll, int x, int y, int w, int h) {
-		GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.gridx = x;
-        gbc.gridy = y;
-        gbc.gridwidth = w;
-        gbc.gridheight = h;
-        gbl.setConstraints(scroll, gbc);
-        this.add(scroll);
-	}
-	private void addTextArea(JTextArea textArea, int x, int y, int w, int h) {
-		GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.gridx = x;
-        gbc.gridy = y;
-        gbc.gridwidth = w;
-        gbc.gridheight = h;
-        gbl.setConstraints(textArea, gbc);
-        this.add(textArea);
+        gbl.setConstraints(comp, gbc);
+        this.add(comp);
 	}
 	
 	public MainApp() {
@@ -75,7 +56,7 @@ public class MainApp extends JFrame {
 	    // FIXME: でかすぎる
 	    //scroll.setMinimumSize(scroll.getPreferredSize());
 	    scroll.setMinimumSize(new Dimension(tbl_width, tbl_height));
-	    addScroll(scroll, 0, 0, 8, 5);
+	    addComponent(scroll, 0, 0, 8, 5);
 	    
 	    // table のデザイン
 	    table.setGridColor(Color.DARK_GRAY);
@@ -85,27 +66,27 @@ public class MainApp extends JFrame {
 	    remove_row_btn = new JButton("-");
 	    add_row_btn.addActionListener(new AddRowButton(table));
 	    remove_row_btn.addActionListener(new RemoveRowButton(table));
-	    addButton(remove_row_btn, 0, 7, 1, 1);
-	    addButton(add_row_btn, 0, 8, 1, 1);
+	    addComponent(remove_row_btn, 0, 7, 1, 1);
+	    addComponent(add_row_btn, 0, 8, 1, 1);
 	    	    
 	    // 列の増減ボタン
 	    add_col_btn = new JButton("+");
 	    remove_col_btn = new JButton("-");
 	    add_col_btn.addActionListener(new AddColumnButton(table));
 	    remove_col_btn.addActionListener(new RemoveColumnButton(table));
-	    addButton(remove_col_btn, 10, 0, 1, 1);
-	    addButton(add_col_btn, 11, 0, 1, 1);
+	    addComponent(remove_col_btn, 10, 0, 1, 1);
+	    addComponent(add_col_btn, 11, 0, 1, 1);
 
 	    // 出力エリア
 	    output_area = new JTextArea();
 	    output_area.setEditable(false);
 	    output_area.setMinimumSize(new Dimension(tbl_width, tbl_height));
-	    addTextArea(output_area, 0, 9, 8, 5);
+	    addComponent(output_area, 0, 9, 8, 5);
 	    
 	    // 変換ボタン
 	    convert_btn = new JButton("CONVERT");
 	    convert_btn.addActionListener(new ConvertButtonListener(table, output_area));
-	    addButton(convert_btn, 10, 7, 2, 2);
+	    addComponent(convert_btn, 10, 7, 2, 2);
 	}
 	
 	public static void main(String[] args) {
