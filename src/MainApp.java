@@ -5,7 +5,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -22,6 +24,7 @@ public class MainApp extends JFrame {
 	JButton add_row_btn, remove_row_btn;
 	JButton add_col_btn, remove_col_btn;
 	JButton convert_btn;
+	JComboBox<Object> type_select_box;
 	JTextArea output_area;
 	
 	// Parameters
@@ -83,9 +86,15 @@ public class MainApp extends JFrame {
 	    output_area.setMinimumSize(new Dimension(tbl_width, tbl_height));
 	    addComponent(output_area, 0, 9, 8, 5);
 	    
+	    // 出力形式選択ボタン
+	    String[] types = {"Trac Wiki", "Markdown"};
+	    type_select_box = new JComboBox<Object>(types);
+	    addComponent(new JLabel("type:"), 10, 9, 1, 1);
+	    addComponent(type_select_box, 11, 9, 1, 1);
+	    
 	    // 変換ボタン
 	    convert_btn = new JButton("CONVERT");
-	    convert_btn.addActionListener(new ConvertButtonListener(table, output_area));
+	    convert_btn.addActionListener(new ConvertButtonListener(table, type_select_box, output_area));
 	    addComponent(convert_btn, 10, 7, 2, 2);
 	}
 	
