@@ -4,10 +4,10 @@ import java.awt.event.ActionListener;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-public class AddRowButton implements ActionListener {
+public class AddRowButtonListener implements ActionListener {
 	protected JTable table;
 	
-	public AddRowButton(JTable table) {
+	public AddRowButtonListener(JTable table) {
 		this.table = table;
 	}
 	

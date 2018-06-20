@@ -4,10 +4,10 @@ import java.awt.event.ActionListener;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-public class RemoveRowButton implements ActionListener {
+public class RemoveRowButtonListener implements ActionListener {
 	protected JTable table;
 	
-	public RemoveRowButton(JTable table) {
+	public RemoveRowButtonListener(JTable table) {
 		this.table = table;
 	}
 	
