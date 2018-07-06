@@ -1,0 +1,7 @@
+td,th {
+  width: 80;
+  height:20;
+}
+table,th,td {
+  border: 1px solid #bbb;
+}

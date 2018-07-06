@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <link rel='stylesheet' type='text/css' href='style.css'>
+    <script type="text/javascript" src="script.js"></script>
+    <title> Table Syntax Maker </title>
+  </head>
+
+  <body>
+    <div>
+      <input type="button" value="-" onclick="deleteColumn('table')" />
+      <input type="button" value="+" onclick="appendColumn('table')" />
+      <label>
+        <font size=2>
+          <input type="checkbox" id="columnHeaderCheckBox" onclick="setColumnHeaderColor('table', 'columnHeaderCheckBox')">
+          column header
+        </font>
+      </label>
+    </div>
+
+    <div id="layout_button_table">
+      <div id="layout_row_buttons">
+        <input type="button" value="-" onclick="deleteRow('table')" />
+        <input type="button" value="+" onclick="appendRow('table')" />
+        <label>
+          <font size=2>
+            <input type="checkbox" id="rowHeaderCheckBox" onclick="setRowHeaderColor('table', 'rowHeaderCheckBox')">
+            row header
+          </font>
+        </label>
+      </div>
+
+      <!-- table, default 2x2 -->
+      <table id="table">
+        <tbody>
+          <tr> <td contenteditable=true></td> <td contenteditable=true></td> <td contenteditable=true></td> </tr>
+          <tr> <td contenteditable=true></td> <td contenteditable=true></td> <td contenteditable=true></td> </tr>
+          <tr> <td contenteditable=true></td> <td contenteditable=true></td> <td contenteditable=true></td> </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- generate button -->
+    <div>
+      <input type="button" value="Generate" onclick="generateSyntax('table','outputArea', 'outputTypeSelect')" />
+    </div>
+
+    <!-- text area -->
+    <div>
+      <!-- テーブルの変化に合わせてサイズも変更？ いや、出力されたらそれに追随でいいか -->
+      <textarea id="outputArea" cols=40 rows=4 readonly=true></textarea>
+      <!-- 出力形式を選択 -->
+      <select id="outputTypeSelect">
+        <option value="Trac Wiki"> Trac Wiki </option>
+        <option value="Markdown"> Markdown </option>
+        <option value="textile"> textile </option>
+        <option value="plain text"> plain text </option>
+      </select>
+    </div>
+    <input type="button" value="clear" onclick="clearOutputArea('outputArea')" />
+
+  </body>
+</html>
