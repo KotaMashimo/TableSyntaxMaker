@@ -5,3 +5,38 @@ td,th {
 table,th,td {
   border: 1px solid #bbb;
 }
+
+#conmenu{
+  width:130px;
+  background-color:#f0f0f0;
+  border:1px solid #999999;
+  display:none;
+  position:fixed;
+}
+ 
+#conmenu.on{
+  display:block;
+}
+ 
+#conmenu ul{
+  list-style:none;
+  margin:0px;
+  padding:5px;
+  font-size:13px;
+}
+
+/* マウスオーバー時の挙動
+ * ref: https://ja.stackoverflow.com/questions/15012/liマウスオーバー時に背景色を変えたい */
+#conmenu li{
+  transition: background-color 0s;  /* fade out */
+}
+#conmenu  li:hover {
+  background-color: #ADD8E6;
+  transition: background-color 0ms; /* fade in */
+}
+
+#area{
+  width:400px;
+  height:200px;
+  background-color:#ddddff;
+}

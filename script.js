@@ -4,6 +4,21 @@
  */
 
 //
+// cell の追加
+//    row: 追加先の行
+//    idx: 追加 index. -1 で最後尾に追加
+//
+function addCellToRow(row, idx) {
+  var cell = row.insertCell(idx);
+  // 性質を不可
+  cell.contentEditable = true;
+  cell.oncontextmenu = function() {
+    cellContextMenu();
+    return false;
+  };
+}
+
+//
 // 行の追加
 //
 function appendRow(id) {
@@ -17,8 +32,18 @@ function appendRow(id) {
 
   // td
   for (var i = 0; i < n_col; i++) {
-    var cell = row.insertCell(-1);
-    cell.contentEditable = true;
+    addCellToRow(row, -1);
+  }
+}
+
+//
+// 列の追加
+//
+function appendColumn(id) {
+  var table = document.getElementById(id);
+  var n_row = table.rows.length;
+  for (var i = 0;  i < n_row; i++) {
+    addCellToRow(table.rows[i], -1)
   }
 }
 
@@ -31,18 +56,6 @@ function deleteRow(id) {
   if ( table.rows.length <= 1 )
     return;
   table.deleteRow(-1);
-}
-
-//
-// 列の追加
-//
-function appendColumn(id) {
-  var table = document.getElementById(id);
-  var n_row = table.rows.length;
-  for (var i = 0;  i < n_row; i++) {
-    var cell = table.rows[i].insertCell(-1);
-    cell.contentEditable = true;
-  }
 }
 
 //
@@ -287,4 +300,107 @@ function repeat_str(str, num) {
 function clearOutputArea(outAreaId) {
   var outArea = document.getElementById(outAreaId);
   outArea.value = "";
+}
+
+
+//
+// 右クリックメニュー
+//
+function cellContextMenu() {
+  // get caller object
+  var cell = event.target;
+  var menu = document.getElementById('conmenu');
+  cell.addEventListener('contextmenu',function(e){
+    menu.style.left = e.pageX + 'px';
+    menu.style.top = e.pageY + 'px';
+    menu.classList.add('on'); // on をクラスに追加することで可視化?
+
+    // conmenu にセルの情報を渡す
+    var menuList = menu.children[0].children; 
+    menuList[0].onclick = function() { combineToCell(cell, 'right') };
+    menuList[1].onclick = function() { combineToCell(cell, 'under') };
+    menuList[2].onclick = function() { uncombineCells(cell) };
+  });
+
+  //左クリック時に独自コンテキストメニューを非表示にする
+  document.body.addEventListener('click',function(){
+    if(menu.classList.contains('on')){
+      menu.classList.remove('on');
+    }
+  });
+}
+
+//
+// セルの結合
+//
+function combineToCell(cell, direction) {
+  var row = cell.parentNode;
+  var table = row.parentNode;
+
+  var n_row = table.rows.length;
+  var n_col = row.cells.length;
+
+  var rowIdx = row.rowIndex;
+  var colIdx = cell.cellIndex;
+
+  // rowspan, colspan を増やしつつ地上げ
+  // 消すセルの rowspan, colspan を加算する
+  switch ( direction ) {
+    case "right":
+      // 端っこはむり
+      if ( colIdx >= n_col - 1 )
+        break;
+      var rightCell = row.cells[colIdx + 1];
+      // マージ先と高さが揃ってないとだめ
+      if ( cell.rowSpan != rightCell.rowSpan )
+        break;
+
+      cell.colSpan += rightCell.colSpan;
+      row.deleteCell(colIdx + 1);
+      break;
+    case "under":
+      // 下端はむり
+      if ( rowIdx >= n_row - 1 )
+        break;
+      var underCell = table.rows[rowIdx + 1].cells[colIdx];
+      // マージ先と幅が揃ってないとだめ
+      if ( cell.colSpan != underCell.colSpan )
+        break;
+
+      cell.rowSpan += underCell.rowSpan;
+      table.rows[rowIdx + 1].deleteCell(colIdx);
+      break;
+  }
+}
+
+//
+// セルの結合解除
+//
+function uncombineCells(cell) {
+  var rowSpan = cell.rowSpan;
+  var colSpan = cell.colSpan;
+  if ( rowSpan == 1 && colSpan == 1 )
+    return;
+
+  var row = cell.parentNode;
+  var table = row.parentNode;
+
+  var rowIdx = row.rowIndex;
+  var colIdx = cell.cellIndex;
+
+  // 足りない部分を追加
+  // 自分の row は必ず check
+  for (var j = colIdx + 1; j < colIdx + colSpan; j++) {
+    addCellToRow(row, j);
+  }
+
+  for(var i = rowIdx + 1; i < rowIdx + rowSpan; i++) {
+    for (var j = colIdx; j < colIdx + colSpan; j++) {
+      addCellToRow(table.rows[i], j);
+    }
+  }
+
+  // セルの大きさを 1x1 に
+  cell.rowSpan = 1;
+  cell.colSpan = 1;
 }

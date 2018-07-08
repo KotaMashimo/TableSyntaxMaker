@@ -6,6 +6,16 @@
   </head>
 
   <body>
+    <!-- context menu -->
+    <!-- ref: https://javascript.programmer-reference.com/js-original-contextmenu/ -->
+    <div id="conmenu">
+      <ul>
+        <li>combine to right</li>
+        <li>combine to under</li>
+        <li>uncombine</li>
+      </ul>
+    </div>
+
     <div>
       <input type="button" value="-" onclick="deleteColumn('table')" />
       <input type="button" value="+" onclick="appendColumn('table')" />
@@ -31,10 +41,23 @@
 
       <!-- table, default 2x2 -->
       <table id="table">
+        <!-- FIXME: onclick を逐一書いてるのがバカっぽい -->
         <tbody>
-          <tr> <td contenteditable=true></td> <td contenteditable=true></td> <td contenteditable=true></td> </tr>
-          <tr> <td contenteditable=true></td> <td contenteditable=true></td> <td contenteditable=true></td> </tr>
-          <tr> <td contenteditable=true></td> <td contenteditable=true></td> <td contenteditable=true></td> </tr>
+          <tr> 
+            <td contenteditable=true oncontextmenu="cellContextMenu();return false;"></td>
+            <td contenteditable=true oncontextmenu="cellContextMenu();return false;"></td>
+            <td contenteditable=true oncontextmenu="cellContextMenu();return false;"></td>
+          </tr>
+          <tr> 
+            <td contenteditable=true oncontextmenu="cellContextMenu();return false;"></td>
+            <td contenteditable=true oncontextmenu="cellContextMenu();return false;"></td>
+            <td contenteditable=true oncontextmenu="cellContextMenu();return false;"></td>
+          </tr>
+          <tr> 
+            <td contenteditable=true oncontextmenu="cellContextMenu();return false;"></td>
+            <td contenteditable=true oncontextmenu="cellContextMenu();return false;"></td>
+            <td contenteditable=true oncontextmenu="cellContextMenu();return false;"></td>
+          </tr>
         </tbody>
       </table>
     </div>
