@@ -169,11 +169,16 @@ function generateTracWikiTable(table) {
 
     text += "||";
     for (var j = 0; j < cells.length; j++) {
-      var bg = cells[j].style.backgroundColor;
+      var cell = cells[j];
+      // 横方向の結合を反映
+      text += repeat_str('||', cell.colSpan - 1);
+
+      // check header
+      var bg = cell.style.backgroundColor;
       if ( bg != "" )
         text += "="
 
-      text += " " + getTextFromCell(cells[j]) + " ";
+      text += " " + getTextFromCell(cell) + " ";
 
       if ( bg != "" )
         text += "="
@@ -224,10 +229,19 @@ function generateTextileTable(table) {
 
     text += "|";
     for (var j = 0; j < cells.length; j++) {
-      var bg = cells[j].style.backgroundColor;
+      var cell = cells[j];
+      var bg = cell.style.backgroundColor;
       if ( bg != "" )
         text += "_.";
-      text += " " + getTextFromCell(cells[j]) + " |";
+
+      // 横結合
+      if ( cell.colSpan > 1 )
+        text += "\\" + cell.colSpan + ".";
+      // 縦結合
+      if ( cell.rowSpan > 1 )
+        text += "/" + cell.colSpan + ".";
+
+      text += " " + getTextFromCell(cell) + " |";
     }
     text += "\n";
   }
@@ -310,6 +324,7 @@ function cellContextMenu() {
   // get caller object
   var cell = event.target;
   var menu = document.getElementById('conmenu');
+
   cell.addEventListener('contextmenu',function(e){
     menu.style.left = e.pageX + 'px';
     menu.style.top = e.pageY + 'px';
