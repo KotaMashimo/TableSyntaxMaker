@@ -3,6 +3,22 @@
  *  https://so-zou.jp/web-app/tech/programming/javascript/dom/node/element/html/table/#no5
  */
 
+/*
+ *  クラス宣言
+ */
+class TSMCell {
+  constructor(text, w=1, h=1) {
+    this.text     = text;   // 中身
+    this.width    = w;      // 幅   (colspan)
+    this.height   = h;      // 高さ (rowspan)
+    this.display  = true;   // 表示・非表示
+    this.isHeader = false;  // ヘッダーか
+  }
+}
+
+/*
+ *  onclick
+ */
 //
 // cell の追加
 //    row: 追加先の行
@@ -132,6 +148,9 @@ function generateSyntax(tableId, outAreaId, outTypeSelectId) {
     case "Trac Wiki":
       text = generateTracWikiTable(table);
       break;
+    case "Trac Wiki2":
+      text = generateTracWikiTable2(table);
+      break;
     case "Markdown":
       text = generateMarkdownTable(table);
       break;
@@ -154,6 +173,7 @@ function generateSyntax(tableId, outAreaId, outTypeSelectId) {
 // cell から文字列を取り出す
 //
 function getTextFromCell(cell) {
+  // 改行をスペースに変換
   return cell.innerHTML.replace("<br>", " ");
 }
 
@@ -170,8 +190,10 @@ function generateTracWikiTable(table) {
     text += "||";
     for (var j = 0; j < cells.length; j++) {
       var cell = cells[j];
+
       // 横方向の結合を反映
       text += repeat_str('||', cell.colSpan - 1);
+      j += cell.colSpan - 1;
 
       // check header
       var bg = cell.style.backgroundColor;
@@ -185,6 +207,42 @@ function generateTracWikiTable(table) {
       text += "||"
     }
     text += "\n";
+  }
+
+  return text;
+}
+
+//
+// Trac Wiki のテーブル構文を生成(processor)
+//    - 縦結合が可能
+//
+function generateTracWikiTable2(table) {
+  var text = "";
+  var array2d = tableToArray(table);
+
+  for (var i = 0; i < array2d.length; i++) {
+    var row = array2d[i];
+    for (var j = 0; j < row.length; j++) {
+      var cell = row[j];
+      if ( !cell.display )
+        continue;
+
+      if ( cell.isHeader )
+        text += "{{{#!th";
+      else
+        text += "{{{#!td";
+
+      // 幅、高さ設定
+      if ( cell.width > 1 )
+        text += " colspan=" + cell.width;
+      if ( cell.height > 1 )
+        text += " rowspan=" + cell.height;
+      text += "\n" + cell.text + "\n}}}\n";
+    }
+
+    // NOTE: 最終行はいらない
+    if ( i < array2d.length - 1 )
+      text += "|------------\n";
   }
 
   return text;
@@ -230,6 +288,9 @@ function generateTextileTable(table) {
     text += "|";
     for (var j = 0; j < cells.length; j++) {
       var cell = cells[j];
+      if ( cell.style.display == "none" )
+        continue;
+
       var bg = cell.style.backgroundColor;
       if ( bg != "" )
         text += "_.";
@@ -250,62 +311,127 @@ function generateTextileTable(table) {
 }
 
 //
-// 文字列成型テーブル
+// html 形式
 //
-function generateTextTable(table) {
-  var text = "";
-  var rows = table.rows;
-
-  // 各列の幅を調べる
-  var widths = Array.apply(null, Array(rows[0].cells.length)).map(function () {return 0});
-  for (var i = 0; i < rows.length; i++) {
-    var cells = rows[i].cells;
-    for (var j = 0; j < cells.length; j++) {
-      var len = getTextFromCell(cells[j]).length;
-      if ( !len )
-        len = 0;
-
-      if ( widths[j] < len )
-        widths[j] = len;
-    }
-  }
-
-  // 文字列生成
-  text += "+"
-  for (var j = 0; j < widths.length; j++)
-    text += "-" + repeat_str('-', widths[j]) + "-+";
-  text += "\n";
-
-  for (var i = 0; i < rows.length; i++) {
-    var cells = rows[i].cells;
-
-    // 中身
-    text += "|";
-    for (var j = 0; j < cells.length; j++) {
-      var elem = getTextFromCell(cells[j]);
-      // NOTE: 空白で足りない部分は埋める
-      text += " " + elem + repeat_str(' ', widths[j] - elem.length) + " |";
-    }
-    text += "\n";
-
-    // 仕切り線
-    text += "+"
-    for (var j = 0; j < widths.length; j++)
-      text += "-" + repeat_str('-', widths[j]) + "-+";
-    text += "\n";
-  }
-  return text;
-  
+function generateHtmlTable(table) {
+  return "html";
 }
 
 //
-// 文字列を指定回数繰り返して連結
+// rst 形式
 //
-function repeat_str(str, num) {
+function generateRstTable(table) {
+  return "rst";
+}
+
+//
+// 文字列成型テーブル
+//    +-------+-----+---+
+//    | hogeo | mic | A |
+//    +-------+-----+---+
+//    | DeDeDeDaiou | B |
+//    +-------+-----+---+
+//    |             | C |
+//    |     mok     +---+
+//    |             | D |
+//    +-------+-----+---+
+//
+function generateTextTable(table) {
   var text = "";
-  for (var i = 0; i < num; i++)
-    text += str;
+  var array2d = tableToArray(table);
+
+  // 各列に必要な幅を調べる
+  var widths = getRequireWidthArray(array2d);
+
+  // 本体部分
+  // NOTE: セルの幅は最大文字数 + スペース 2 つぶん
+  // 上の罫線
+  text += "+";
+  for (var j = 0; j < array2d[0].length; j++)
+    text += '-' + repeat_str("-", widths[j]) + "-+";
+  text += "\n";
+
+  // セル
+  for (var i = 0; i < array2d.length; i++) {
+    // 中身部分
+    text += "|";
+    for (var j = 0; j < array2d[i].length; j++) {
+      var cell = array2d[i][j];
+
+      // このセルの幅を先に計算
+      var cwidth = widths[j];
+      for (var k = 1; k < cell.width; k++) {
+        cwidth += 3 + widths[j + k];
+      }
+      // とばすセル分先に進む
+      j += cell.width - 1;
+
+      // <sp> + text + <margin> + <sp>
+      var n_space = cwidth - cell.text.length;
+      text += " " + cell.text + repeat_str(" ", n_space) + " |";
+    }
+    text += "\n";
+     
+    // 罫線
+    text += "+";
+    for (var j = 0; j < array2d[i].length; j++)
+    {
+      var elem = '-';
+      var sep  = '+';
+
+      // 上の方にあるセルが 2 以上の rowSpan をもっているなら消えるかも
+      for (var k = 0; k <= i; k++) {
+        var cell = array2d[i - k][j];
+        if ( cell.height >= 2 + k ) {
+          elem = " ";
+          break;
+        }
+      }
+
+      // そして横線が消えたなら、左側セルの colSpan によっては右の + も消えるかも
+      if ( elem == " " ) {
+        for (var k = 0; k <= j; k++) {
+          var cell = array2d[i][j - k];
+          if ( cell.width >= 2 + k ) {
+            sep = " ";
+            break;
+          }
+        }
+      }
+
+      text += elem + repeat_str(elem, widths[j]) + elem;
+      text += sep;
+    }
+    text += "\n";
+  }
   return text;
+}
+
+//
+// 各列に必要な幅の配列を取得
+//
+function getRequireWidthArray(array2d) {
+  // 各列の幅を調べる
+  var widths = Array.apply(null, Array(array2d[0].length)).map(function () {return 0});
+  for (var i = 0; i < array2d.length; i++) {
+    for (var j = 0; j < array2d[i].length; j++) {
+      var cell = array2d[i][j];
+      var len = cell.text.length;
+      if ( !len )
+        len = 0;
+
+      // 幅がある場合は長さを 幅だけ当分する
+      div_len = Math.ceil((len - cell.width + 1) / cell.width);
+
+      for (var k = 0; k < cell.width; k++) {
+        // 今までの最大幅を超えるならセット
+        if ( widths[j+k] < div_len )
+          widths[j+k] = div_len;
+      }
+    }
+  }
+
+  return widths;
 }
 
 //
@@ -363,27 +489,43 @@ function combineToCell(cell, direction) {
   switch ( direction ) {
     case "right":
       // 端っこはむり
-      if ( colIdx >= n_col - 1 )
+      if ( colIdx + cell.colSpan > n_col - 1 )
         break;
-      var rightCell = row.cells[colIdx + 1];
+      var rightCell = row.cells[colIdx + cell.colSpan];
       // マージ先と高さが揃ってないとだめ
       if ( cell.rowSpan != rightCell.rowSpan )
         break;
 
       cell.colSpan += rightCell.colSpan;
-      row.deleteCell(colIdx + 1);
+      // 非表示セルにも幅を設定
+      for (var i = 1; i < cell.rowSpan; i++) {
+        subrow = table.rows[rowIdx+i];
+        subrow.cells[colIdx].colSpan = cell.colSpan;
+      }
+
+      // 結合に使われたセルを非表示
+      rightCell.style.display = "none"; 
+      rightCell.innerHTML = "";
       break;
     case "under":
       // 下端はむり
-      if ( rowIdx >= n_row - 1 )
+      if ( rowIdx + cell.rowSpan > n_row - 1 )
         break;
-      var underCell = table.rows[rowIdx + 1].cells[colIdx];
+      var underCell = table.rows[rowIdx + cell.rowSpan].cells[colIdx];
       // マージ先と幅が揃ってないとだめ
       if ( cell.colSpan != underCell.colSpan )
         break;
 
       cell.rowSpan += underCell.rowSpan;
-      table.rows[rowIdx + 1].deleteCell(colIdx);
+
+      // 非表示セルにも高さを設定
+      for (var i = 1; i < cell.colSpan; i++) {
+        row.cells[colIdx+i].rowSpan = cell.rowSpan;
+      }
+
+      // 結合に使われたセルを非表示
+      underCell.style.display = "none";
+      underCell.innerHTML = "";
       break;
   }
 }
@@ -406,16 +548,77 @@ function uncombineCells(cell) {
   // 足りない部分を追加
   // 自分の row は必ず check
   for (var j = colIdx + 1; j < colIdx + colSpan; j++) {
-    addCellToRow(row, j);
+    row.cells[j].style.display = "";
+    row.cells[j].rowSpan = 1;
+    row.cells[j].colSpan = 1;
   }
 
   for(var i = rowIdx + 1; i < rowIdx + rowSpan; i++) {
     for (var j = colIdx; j < colIdx + colSpan; j++) {
-      addCellToRow(table.rows[i], j);
+      table.rows[i].cells[j].style.display = "";
+      table.rows[i].cells[j].rowSpan = 1;
+      table.rows[i].cells[j].colSpan = 1;
     }
   }
 
   // セルの大きさを 1x1 に
   cell.rowSpan = 1;
   cell.colSpan = 1;
+}
+
+/*
+ *  Utility
+ */
+//
+// 文字列を指定回数繰り返して連結
+//
+function repeat_str(str, num) {
+  var text = "";
+  for (var i = 0; i < num; i++)
+    text += str;
+  return text;
+}
+
+//
+// 表の行数、列数の最大値を求める
+//
+function getMaxRowCount(table) {
+  return table.rows.length;
+}
+function getMaxColumnCount(table) {
+  var rows = table.rows;
+  var max = 0;
+  for (var i = 0; i < rows.length; i++) {
+    var n_col = rows[i].cells.length;
+    if ( max < n_col )
+      max = n_col;
+  }
+  return max;
+}
+
+//
+// table を二次元配列に変換
+//    TODO: ヘッダ判定
+//
+function tableToArray(table) {
+  var array2d = new Array();
+  var rows = table.rows;
+
+  // table を回って配列に値をいれていく
+  for (var i = 0; i < rows.length; i++) {
+    var array = new Array();
+
+    var row = rows[i];
+    for (var j = 0; j < row.cells.length; j++) {
+      var cell = row.cells[j];
+      var tsmcell = new TSMCell(cell.innerHTML, cell.colSpan, cell.rowSpan);
+      if ( cell.style.display == "none" )
+        tsmcell.display = false;
+      array.push(tsmcell);
+    }
+
+    array2d.push(array);
+  }
+
+  return array2d;
 }
