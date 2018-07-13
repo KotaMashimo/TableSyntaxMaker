@@ -363,12 +363,29 @@ function generateTextTable(table) {
       for (var k = 1; k < cell.width; k++) {
         cwidth += 3 + widths[j + k];
       }
-      // とばすセル分先に進む
-      j += cell.width - 1;
+
+      var string = "";
+      // 縦結合セルならば、文字列の表示は後回し
+      if ( cell.height == 1 )
+        string = cell.text;
+
+      // 縦結合セルの表示部分かをチェック
+      if ( !cell.display ) {
+        for (var k = 1; k <= i; k++) {
+          var pcell = array2d[i-k][j];
+          if ( (pcell.height - 1) / 2 == k ) {
+            string = pcell.text;
+            break;
+          }
+        }
+      }
 
       // <sp> + text + <margin> + <sp>
-      var n_space = cwidth - cell.text.length;
-      text += " " + cell.text + repeat_str(" ", n_space) + " |";
+      var n_space = cwidth - string.length;
+      text += " " + string + repeat_str(" ", n_space) + " |";
+
+      // とばすセル分先に進む
+      j += cell.width - 1;
     }
     text += "\n";
      
@@ -378,12 +395,17 @@ function generateTextTable(table) {
     {
       var elem = '-';
       var sep  = '+';
+      var string = "";
 
       // 上の方にあるセルが 2 以上の rowSpan をもっているなら消えるかも
       for (var k = 0; k <= i; k++) {
         var cell = array2d[i - k][j];
         if ( cell.height >= 2 + k ) {
           elem = " ";
+          // 縦結合セルによって消されたなら、文字列表示位置かも
+          // FIXME: 横結合が絡むと幅がおかしくなる
+          if ( cell.height / 2 - 1 == k )
+            string = cell.text;
           break;
         }
       }
@@ -399,8 +421,19 @@ function generateTextTable(table) {
         }
       }
 
-      text += elem + repeat_str(elem, widths[j]) + elem;
-      text += sep;
+      if ( string.length == 0 ) {
+        text += elem + repeat_str(elem, widths[j]) + elem;
+        text += sep;
+      }
+      else {
+        // 文字列がある場合は colspan 分一気にやる
+        var cwidth = widths[j];
+        for (var k = 1; k < cell.width; k++) {
+          cwidth += 3 + widths[j + k];
+        }
+        text += " " + string + repeat_str(" ", cwidth - string.length) + " +";
+        j += cell.width - 1;
+      }
     }
     text += "\n";
   }
