@@ -1,16 +1,20 @@
 # TableSyntaxMaker
-書くのがだるいTrac Wikiなどのテーブル構文をさくっと生成してくれる気の利くヤツ（予定）。
+書くのがだるいテーブル構文をさくっと生成してくれる気の利くヤツ。
 
-実装済
-  - セルの結合
-TODOなど
+### TODO
   - copy & paste
-
+  - html
+  - rst
+  
 ## formats
 - Trac Wiki
 - Trac Wiki (td, th processor)
 - Markdown
 - textile
-- (html)
-- (rst)
 - plain text
+
+## how to use
+```
+$ ./combine.py
+```
+then, `TableSyntaxMaker.html` is generated.
